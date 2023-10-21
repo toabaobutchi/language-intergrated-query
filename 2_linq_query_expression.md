@@ -17,7 +17,7 @@ Về mặt ngữ nghĩa, việc sử dụng *method syntax* hay *query syntax* �
 Như đã đề cập ở phần trên, một biểu thức truy vấn LINQ bao gồm nhiều mệnh đề như `from`, `select`, `where`, ... Các mệnh đề này được xem là các *từ khóa truy vấn* (Query Keywords).
 
 > [!Important]
-> Một biểu thức truy vấn phải bắt đầu bằng mệnh đề `from` và kết thúc bằng mệnh đề [**`select`**]() hoặc [**`group`**](#m%E1%BB%87nh-%C4%91%E1%BB%81-group). Giữa mệnh đề bắt đầu và kết thúc, ta có thể chèn vào các mệnh đề tùy chọn khác như `where`, `orderby`, `join`, ... thậm chí là một mệnh đề `from` khác.
+> Một biểu thức truy vấn phải bắt đầu bằng mệnh đề `from` và kết thúc bằng mệnh đề [**`select`**](#mệnh-đề-select) hoặc [**`group`**](#mệnh-đề-group). Giữa mệnh đề bắt đầu và kết thúc, ta có thể chèn vào các mệnh đề tùy chọn khác như `where`, `orderby`, `join`, ... thậm chí là một mệnh đề `from` khác.
 
 ### Mệnh đề from
 
