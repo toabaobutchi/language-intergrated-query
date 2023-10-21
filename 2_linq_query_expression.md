@@ -234,5 +234,255 @@ Nhưng đối với các khóa là đối tượng, không triển khai `ICompar
 
 ### Mệnh đề group
 
+Mệnh đề `group` dùng để nhóm các khóa có cùng giá trị thành một đối tượng với kiểu `IGrouping<TKey, TElement>`.
+
+Một cách đơn giản mà nói, đối tượng `IGrouping<TKey, TElement>` là một đối tượng chứa một giá trị khóa (với thuộc tính `Key`) và một tập dữ liệu (có thể có hoặc không có phần tử nào).
+
+Cú pháp
+
+```sql
+    group <range-variable> by <group-key>
+```
+
+Trong đó:
+
+* `range-variable`: là biến lấy từ mệnh đề `from`.
+
+* `group-key` là tiêu chí gộp, là những giá trị có thể nhóm lại được, các giá trị này thường xuất hiện trùng lặp trong bộ dữ liệu gốc và ta muốn nhóm các đối tượng có cùng các giá trị lặp này lại thành nhóm.
+
+Với mỗi `group-key`, mệnh đề `group` sẽ trả về một đối tượng `IGrouping<TKey, TElement>` gồm khóa (cũng là tiêu chí gộp) và các phần tử thõa mãn tiêu chí đó.
+
+Biểu thức truy vấn sau cùng sẽ trả về đối tượng `IEnumerable<IGrouping<TKey, TElement>>`, tức là một danh sách các nhóm. Vì vậy thông thường các xử lý thao tác với dữ liệu mà `group` trả ra sẽ dùng 2 vòng lặp lồng nhau.
+
+**Ví dụ:**
+
+```cs
+    int[] arr = { 5, -4, 3, 6, 8 , 10};
+    IEnumerable<IGrouping<bool, int>> results = from value in arr
+                                                group value by value % 2 == 0; // nhóm theo giá trị chẵn - lẻ
+
+    foreach(IGrouping<bool, int> group in result)
+    {
+        Console.WriteLine(group.Key ? "Even numbers: " : "Odd numbers: ");
+
+        foreach(int item in group)
+        {
+            Console.Write(item + "\t");
+        }
+        Console.WriteLine();
+    }
+
+    /* 
+    Output:
+        Odd numbers:
+        5	3
+        Even numbers:
+        -4	6	8	10 
+    */
+```
+
+Để tránh dài dòng, ta nên sử dụng từ khóa `var` để nhận các giá trị trả về cho các biểu thức truy vấn nói chung.
+
+Ta cũng có thể dùng giá trị của một thuộc tính trong tập dữ liệu để gộp nhóm.
+
+**Ví dụ:**
+
+```cs
+    class Person
+    {
+        public string Name { get; set; }
+        public string Address { get; set; }
+    }
+
+    // gộp nhóm theo địa chỉ, thành phố ...
+    Person[] people = {
+        new Person { Name = "Dung", Address = "HaNoi" },
+        new Person { Name = "An", Address = "DaNang" },
+        new Person { Name = "Chi", Address = "HCM" },
+        new Person { Name = "Binh", Address = "HCM" },
+        new Person { Name = "Tuan", Address = "HaNoi" },
+        new Person { Name = "Thinh", Address = "HaNoi" }
+    };
+
+    var personByAddress = from person in persons
+                          group person by person.Address;
+
+    foreach(var personGroup in personByAddress)
+    {
+        Console.WriteLine($"Person who lives in {personGroup.Key}: ");
+        foreach(var person in personGroup)
+        {
+            Console.WriteLine("- " + person.Name);
+        }
+    }
+
+    /*
+    Output:
+        Person who lives in HaNoi:
+        - Dung
+        - Tuan
+        - Thinh
+        Person who lives in DaNang:
+        - An
+        Person who lives in HCM:
+        - Chi
+        - Binh
+    */
+```
+
+Khóa dành cho các nhóm không bị giới hạn bởi kiểu dữ liệu nào.
+
+> [!Warning]
+> Phía sau mệnh đề `group` không có mệnh đề khác (kể cả mệnh đề `select`) **trừ khi** sử dụng tiếp tục với từ khóa `into` (xem phần [**Từ khóa into**](#từ-khóa-into)).
+
+### Từ khóa into
+
+Từ khóa `into` dùng để tạo một định danh tạm thời (có thể xem như 1 biến tạm thời) và nhận kết quả trả về của mệnh đề [**`group`**](#mệnh-đề-group), [**`join`**](#mệnh-đề-join) hoặc [**`select`**](#mệnh-đề-select).
+
+Khi sử dụng với `group` và `select`, nó ngăn việc kết thúc biểu thức truy vấn và có thể tiếp tục sử dụng với các mệnh đề khác (cho đến khi sử dụng mệnh đề `select` hay `group` tiếp theo để kết thúc biểu thức). Tên gọi chính thức[^1] của từ khóa `into` trong trường hợp này là *continuation*.
+
+[^1]: Từ *continuation* đã được sử dụng trong các bài viết, bài hướng dẫn hay tài liệu của Microsoft.
+
+Đối với việc sử dụng từ khóa `into` trong mệnh đề `join` sẽ được trình bày chi tiết trong phần [**Mệnh đề `join`**](#mệnh-đề-join). Ở phần này, ta sẽ tập trung vào tác dụng của từ khóa `into` đối với mệnh đề `group` và `select`.
+
+Như đã trình bày, từ khóa `into` dùng để nhận về kết quả của mệnh đề `group`, `join` hoặc `select`. Sau khi dùng từ khóa `into`, biến tạm thời sẽ là thứ duy nhất gọi được ở các mệnh đề phía sau.
+
+Cú pháp:
+
+```sql
+    [ select | group | join ] ... into <identifier>
+```
+
+**Ví dụ:**
+
+```cs
+    int[] arr = { 1, 2, 3, 4, 5, 6 };
+    var result = from value in arr
+                 group value by value % 2 == 0 into g // chỉ còn biến 'g', hủy các biến thao tác phía trên
+                 // select value; // lỗi, biến 'value' không có tầm vực ở đây
+                 select g; // hợp lệ
+```
+Biến tạm thời tạo bởi từ khóa `into` có kiểu dữ liệu trùng với kiểu phần tử từ mệnh đề. Ở ví dụ trên, các phần tử trả ra từ mệnh đề `group` có kiểu `IGrouping<bool, int>`, nên biến `g` sẽ có kiểu `IGrouping<bool, int>`.
+
+Thông thường kiểu dữ liệu của biến tạm của mệnh đề `group` và `select` sẽ như sau:
+
+* `... group A by B into C`: biến `C` sẽ cùng kiểu với `A`.
+
+* `... select A into B`: biến `B` sẽ cùng kiểu với `A`.
+
+Sau khi sử dụng `into`, biểu thức truy vấn được phép tiếp tục với các mệnh đề khác.
+
+**Ví dụ:**
+
+```cs
+    Person[] people = {
+        new Person { Name = "Dung", Address = "HaNoi" },
+        new Person { Name = "An", Address = "DaNang" },
+        new Person { Name = "Chi", Address = "HCM" },
+        new Person { Name = "Binh", Address = "HCM" },
+        new Person { Name = "Tuan", Address = "HaNoi" },
+        new Person { Name = "Thinh", Address = "HaNoi" }
+    };
+
+    var nameByAddress = from person in people
+                        group person by person.Address into pGroup;
+                        from p in pGroup // duyệt qua các phần tử của pGroup
+                        select p.Name; // chỉ lấy tên, không lấy toàn bộ đối tượng
+```
+
+Biến tạm dành cho mệnh đề `group` sẽ có kiểu dữ liệu là `IGrouping<TKey, TElement>`, do đó thường sẽ dùng thêm một mệnh đề `from` nữa để duyệt qua, xử lý, ... các phần tử.
+
+### Mệnh đề join
+
+Mệnh đề `join` được dùng để thể hiện phép kết cho 2 tập hợp. Khác với phép kết giữa các bảng trong cơ sở dữ liệu, phép kết của mệnh đề `join` chỉ yêu cầu mỗi tập dữ liệu có một số giá trị có thể so sánh bằng, từ đó làm khóa để kết hợp lại mà không yêu cầu có mối quan hệ nào.
+
+Cú pháp:
+
+```cs
+    join <range-variable> in <join-data-source> on <key 1> equals <key 2>
+```
+
+Trong đó:
+
+* `range-variable`: giống như biến dùng với mệnh đề `from`, `group`, ... Tuy nhiên, biến này được dùng để đại diện cho các phần tử trong `join-data-source`.
+
+* `join-data-source`: là tập dữ liệu cần tạo phép kết.
+
+* `key 1`: là khóa để tạo phép kết lấy từ bộ dữ liệu đang dùng (thường lấy từ mệnh đề `from`).
+
+* `key 2`: là khóa lấy từ `range-variable` và cần so khớp với `key 1`.
+
+> [!Note]
+> Từ khóa `equals` chỉ dùng trong mệnh đề `join`.
+
+**Ví dụ:**
+
+```cs
+    var results = from category in categories
+                  join product in products on category.ID equals product.CategoryID
+                  select new { ProductName = product.Name, Category = category.Name };
+```
+
+Khi sử dụng cùng từ khóa `into`, mệnh đề `join` trở thành **Group join** hoặc **Left outer join**. Nhưng trước tiên, ta sẽ tìm hiểu qua về từ khóa `into` khi sử dụng trong mệnh đề `join`.
+
+---
+# Từ khóa into với mệnh đề join
+---
+
+Biến tạm khai báo bởi từ khóa `into` sẽ lưu một đối tượng `IEnumerable<T>` khi dùng với mệnh đề `join`. Với `T` trùng với kiểu tập dữ liệu tạo phép kết. Biến tạm này sẽ lưu danh sách các đối tượng phù hợp với khóa mà tập dữ liệu gốc cung cấp.
+
+**Ví dụ:**
+
+```cs
+    var results = from _class in classes
+                  join stu in students on _class.ClassID equals stu.ClassID into studentGroup
+                  select new { _class.ClassName, Students = studentGroup };
+
+    foreach(var item in results)
+    {
+        // hiển thị tên lớp
+        Console.WriteLine(item.ClassName + ": ");
+
+        // hiển thị tên các sinh viên trong lớp đang xét
+        foreach(var student in item.Students)
+        {
+            Console.WriteLine("\t" + student.Name);
+        }
+    }
+```
+
+Ở ví dụ trên, biến `studentGroup` sẽ lưu đối tượng `IEnumerable<Student>`, là một tập hợp các sinh viên cùng 1 lớp. Ta cũng có thể tiếp tục sử dụng biến `studentGroup` để xử lý và duyệt qua bằng `from`.
+
+**Ví dụ:**
+
+```cs
+    var results = from _class in classes
+                  join stu in students on _class.ClassID equals stu.ClassID into studentGroup
+                  from student in studentGroup // trong mỗi lớp
+                  select student.Name + " : " + _class.ClassName;
+```
+
+---
+#### Group join và Left outer join
+
+Những mệnh đề `join` sử dụng từ khóa `into` được gọi là **Group join**.
+
+Bên cạnh đó, **Left outer join** cũng là một dạng của Group join. Left outer join hay Left join là một phép kết cho phép trả về toàn bộ phần tử của tập hợp vế trái mặc dù sẽ có một hoặc một số phần tử không so khớp được với khóa mà tập hợp ở vế phải cung cấp.
+
+Đối với **Inner join** (mệnh đề `join` không sử dụng từ khóa `into`), kết quả trả về sẽ chỉ là những "bộ" dữ liệu tạo được phép kết (khóa A khớp với khóa B). Các phần tử nào không tạo được phép kết sẽ không trả về.
+
+![Inner join](https://funix.edu.vn/wp-content/uploads/2022/04/innerjoin.png)
+
+**Ví dụ:**
+
+```cs
+    var results = from category in categories
+                  join prod in products on category.ID equals prod.CategoryID
+                  select new { ProductName = prod.Name, Category = category.Name };
+
+	// Nếu 1 product có 'CategoryID' không trùng với khóa nào của category thì sẽ không được trả về
+```
+
+Khi sử dụng từ khóa `into`, một tập hợp sẽ được trả về (dù không có phần tử nào) và ngăn việc tự động bỏ qua đối tượng ở vế trái của biểu thức truy vấn.
 
 
