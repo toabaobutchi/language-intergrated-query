@@ -128,9 +128,14 @@ Các ví dụ bên dưới chỉ ra một số cách sử dụng với phương 
 * Chọn xem tất cả
 
 ```cs
-    Student[] students = new Student[10];
-
-    // thêm các thông tin sinh viên ...
+    Student[] students = new Student[]
+    {
+        new Student() { Id = 1, Name = "Nguyen Van Binh", Score = 7.5 },
+        new Student() { Id = 2, Name = "Le Thi Chi", Score = 5.0 },
+        new Student() { Id = 3, Name = "Vo Van Anh", Score = 7.0 },
+        new Student() { Id = 4, Name = "Tran Thi Hoa", Score = 3.5 },
+        new Student() { Id = 5, Name = "Le Van Quy", Score = 2.0 }
+    };
 
     // trả về danh sách kiểu Student
     IEnumerable<Student> s_arr = students.Select(stu => stu);
@@ -144,8 +149,14 @@ Các ví dụ bên dưới chỉ ra một số cách sử dụng với phương 
 * Chọn lọc thuộc tính để trả về
 
 ```cs
-    Student[] students = new Student[10];
-    // thêm các thông tin sinh viên ...
+    Student[] students = new Student[]
+    {
+        new Student() { Id = 1, Name = "Nguyen Van Binh", Score = 7.5 },
+        new Student() { Id = 2, Name = "Le Thi Chi", Score = 5.0 },
+        new Student() { Id = 3, Name = "Vo Van Anh", Score = 7.0 },
+        new Student() { Id = 4, Name = "Tran Thi Hoa", Score = 3.5 },
+        new Student() { Id = 5, Name = "Le Van Quy", Score = 2.0 }
+    };
 
     // trả về một danh sách các 'Name' kiểu string
     IEnumerable<string> names = students.Select(stu => stu.Name);
@@ -215,8 +226,14 @@ Tham số kiểu `int` đại diện cho chỉ số phần tử được dùng t
 **Ví dụ:**
 
 ```cs
-    Student[] students = new Student[10];
-    // thêm các thông tin sinh viên ...
+    Student[] students = new Student[]
+    {
+        new Student() { Id = 1, Name = "Nguyen Van Binh", Score = 7.5 },
+        new Student() { Id = 2, Name = "Le Thi Chi", Score = 5.0 },
+        new Student() { Id = 3, Name = "Vo Van Anh", Score = 7.0 },
+        new Student() { Id = 4, Name = "Tran Thi Hoa", Score = 3.5 },
+        new Student() { Id = 5, Name = "Le Van Quy", Score = 2.0 }
+    };
 
     // trả về danh sách sinh viên có điểm lớn hơn 5
     List<Student> gt5Students = students.Where(s => s.Score >= 5.0).ToList();
@@ -232,7 +249,14 @@ Các phương thức mở rộng không riêng gì phương thức `Where()` đ�
 **Ví dụ:**
 
 ```cs
-    Student[] students = new Student[10];
+    Student[] students = new Student[]
+    {
+        new Student() { Id = 1, Name = "Nguyen Van Binh", Score = 7.5 },
+        new Student() { Id = 2, Name = "Le Thi Chi", Score = 5.0 },
+        new Student() { Id = 3, Name = "Vo Van Anh", Score = 7.0 },
+        new Student() { Id = 4, Name = "Tran Thi Hoa", Score = 3.5 },
+        new Student() { Id = 5, Name = "Le Van Quy", Score = 2.0 }
+    };
 
     // danh sách tên sinh viên có điểm lớn hơn 5
     List<string> gt5StudentNames = students.Where(s => s.Score >= 5.0).Select(s => s.Name).ToList();
@@ -259,6 +283,87 @@ Nên xem xét kiểu mà phương thức mở rộng trả về trước khi k�
 
 * Ngược lại nếu gọi `Select(s => s.Name)`, nó trả về kiểu `IEnumerable<string>`, và kiểu `string` thì không có thuộc tính `Score`. Vì vậy gây ra lỗi biên dịch.
 
-Vì vậy, ta cần quan tâm đến kết quả trả về và thứ tự gọi phương thức.
+Vì vậy, ta cần quan tâm đến kết quả trả về của phương thức LINQ và thứ tự gọi chúng.
+
+### Phương thức OrderBy() và OrderByDescending()
+
+Phương thức này được dùng để sắp xếp một tập hợp tăng dần theo một điều kiện cụ thể nào đó được chỉ định.
+
+Dù được dùng để sắp xếp tăng dần, tuy nhiên ta vẫn có thể sắp xếp giảm dần bằng tham số `IComparer<T>` của phương thức `OrderBy()`.
+
+Cú pháp:
+
+```cs
+    IOrderedEnumerable<TSource> OrderBy(Func<TSource,TKey> keySelector)
+    IOrderedEnumerable<TSource> OrderBy(Func<TSource,TKey> keySelector, IComparer<Tkey> comparer)
+```
+
+Trong đó:
+
+* `Tkey` là kiểu mà ta muốn thực hiện so sánh và sắp xếp. Tham số `keySelector` dùng biểu thức Lambda để chỉ ra thành phần giá trị dùng để so sánh.
+
+* `IOrderedEnumerable` là một sub-interface của `IEnumerable`.
+
+* `IComparer<TKey>` là interface dùng để chỉ ra cách so sánh giữa 2 đối tượng.
+
+Nếu không chỉ định tham số `IComparer<TKey>`, phương thức `OrderBy()` sẽ sắp xếp tăng dần dựa vào đối tượng `IComparer` mặc định của kiểu `TKey` (đa phần các kiểu dữ liệu nguyên thủy bao gồm cả `string` đều có  trình so sánh riêng).
+
+> Xem thêm trình so sánh mặc định [**Comparer<T>.Default**](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.comparer-1.default?view=net-7.0).
+
+**Ví dụ:**
+
+```cs
+    Student[] students = new Student[]
+    {
+        new Student() { Id = 1, Name = "Nguyen Van Binh", Score = 7.5 },
+        new Student() { Id = 2, Name = "Le Thi Chi", Score = 5.0 },
+        new Student() { Id = 3, Name = "Vo Van Anh", Score = 7.0 },
+        new Student() { Id = 4, Name = "Tran Thi Hoa", Score = 3.5 },
+        new Student() { Id = 5, Name = "Le Van Quy", Score = 2.0 }
+    };
+
+    // sắp xếp theo điểm tăng dần – theo kiểu double
+    IEnumerable<Student> orderedStudents = students.OrderBy(s => s.Score);
+
+    foreach(Student s in orderedStudents)
+    {
+        Console.WriteLine(s.Id + "\t" + s.Name + "\t" + s.Score);
+    }
+```
+
+Nếu muốn triển khai interface `IComparer<T>`, hãy xem phần [**Triển khai IComparer<T>**]().
+
+> [!Note]
+>
+> Để sắp xếp giảm dần, ta có thể sử dụng phương thức `OrderByDescending()` với các tham số và cách dùng tương tự phương thức `OrderBy()`.
+
+
+### Phương thức Union()
+
+Khi muốn kết hợp 2 tập hợp thành một tập hợp duy nhất, **bỏ qua các phần tử trùng lặp** thì ta có thể sử dụng phương thức mở rộng `Union()`.
+
+Cú pháp:
+
+```cs
+    IEnumerable<TSource> Union(IEnumerable<TSource> second)
+    IEnumerable<TSource> Union(IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
+```
+
+Vì Union() bỏ qua các phần tử trùng nhau và chỉ giữ lại 1 phiên bản, do đó mà phương thức này cần biết cách để so sánh bằng nhau giữa các phần tử. Mặc định nếu không chỉ định trình so sánh (so sánh bằng) `IEqualityComparer<TSource>` thì phương thức sẽ sử dụng trình so sánh mặc định trên kiểu.
+
+**Ví dụ:**
+
+```cs
+    int[] a = { 5, 3, 3, 2, 7, 5 };
+    int[] b = { 7, 9, 12, 6 };
+
+    IEnumerable<int> union = a.Union(b);
+
+    foreach(int item in union)
+    {
+        Console.Write(item + " "); // 5 3 2 7 9 12 6
+    }
+```
+
 
 
