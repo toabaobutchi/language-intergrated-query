@@ -365,5 +365,214 @@ Vì Union() bỏ qua các phần tử trùng nhau và chỉ giữ lại 1 phiên
     }
 ```
 
+Tuy nhiên, đối với các kiểu dữ liệu do lập trình viên định nghĩa, chúng không có trình so sánh bằng giữa 2 đối tượng và ta không thể sử dụng theo cách thông thường. Để sử dụng phương thức `Union()` trên các kiểu dữ liệu tự tạo, ta có 2 cách giải quyết sau:
 
+* Triển khai interface `IEquatable<T>` cho kiểu tự tạo. Phương thức `Union()` sẽ sử dụng phương thức `Equals()` và `GetHashCode()` để thực hiện so sánh bằng và ghép 2 tập hợp.
+
+**Ví dụ:**
+
+```cs
+    public class Student : IEquatable<Student>
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public double Score { get; set; }
+
+        public Student(int id, string name, double score)
+        {
+            Id = id;
+            Name = name;
+            Score = score;
+        }
+
+        // ghi đè phương thức 'Equals(T)' của interface 'IEquatable<T>'
+        public bool Equals(Student other) => Id == other.Id;
+
+        // ghi đè các phương thức của kiểu object
+        public override bool Equals(object obj)
+        {
+            Student other = (Student)obj;
+            return Id == other.Id;
+        }
+        public override int GetHashCode() => Id.GetHashCode();
+    }
+
+    // sử dụng phương thức Union() trên kiểu Student
+    Student[] a = { new Student(1, "John", 6.0), new Student(2, "Mary", 5.5) };
+    Student[] b = { new Student(3, "Bob", 7.75), new Student(2, "Mary", 6.0) };
+
+    var union = a.Union(b);
+
+    foreach(var item in union)
+    {
+        Console.WriteLine(item.Id + ": " + item.Name);
+    }
+```
+
+* Tạo một lớp triển khai interface `IEqualityComparer<T>` và định nghĩa 2 phương thức `Equals()` và `GetHashCode()`.
+
+```cs
+    public class StudentEqualComparer : IEqualityComparer<Student>
+    {
+        public bool Equals(Student a, Student b) => a.Id == b.Id;
+        public int GetHashCode(Student a) => a.Id.GetHashCode();
+    }
+
+    // sử dụng phương thức Union() trên kiểu Student
+    Student[] a = { new Student(1, "John", 6.0), new Student(2, "Mary", 5.5) };
+    Student[] b = { new Student(3, "Bob", 7.75), new Student(2, "Mary", 6.0) };
+
+    var union = a.Union(b, new StudentEqualComparer()); // chỉ định trình so sánh bằng
+
+    foreach(var item in union)
+    {
+        Console.WriteLine(item.Id + ": " + item.Name);
+    }
+```
+
+### Phương thức Join()
+
+Phương thức `Join()` được dùng để thực hiện phép kết giữa 2 tập dữ liệu. Các đối tượng trong 2 tập dữ liệu thường có mối quan hệ với nhau như 1 – 1, 1 – N hay N – N.
+
+Phép kết tạo bởi phương thức `Join()` tương tự phép kết `INNER JOIN` của SQL.
+
+Cú pháp:
+
+```cs
+    IEnumerable<TResult> Join(
+        IEnumerable<TInner> inner,
+        Func<TOuter,TKey> outerKeySelector,
+        Func<TInner,TKey> innerKeySelector,
+        Func<TOuter,TInner,TResult> result
+    )
+
+    IEnumerable<TResult> Join(
+        IEnumerable<TInner> inner,
+        Func<TOuter,TKey> outerKeySelector,
+        Func<TInner,TKey> innerKeySelector,
+        Func<TOuter,TInner,TResult> result,
+        IEqualityComparer<TKey> comparer
+    )
+```
+
+Trong đó: Gọi **`A`** là tập hợp gọi phương thức `Join()`, **`B`** là tập hợp mà A cần tạo phép kết.
+
+* `inner`: là tập hợp cần thực hiện phép kết.
+
+* `outerKeySelector`: hàm chỉ ra khóa cần tạo phép kết của tập hợp **`A`**.
+
+* `innerKeySelector`: hàm chỉ ra khóa của **`B`** cần tạo phép kết với khóa chỉ ra bởi `outerKeySelector` của **`A`**.
+
+* `result`: thao tác và chọn giá trị sẽ trả về
+
+* `comparer`: chỉ ra cách so sánh bằng giữa `outerKeySelector` và `innerKeySelector`.
+
+**Ví dụ:**
+
+```cs
+    class Student {
+        public string Name { get; set; }
+        public int ClassID { get; set; }
+    }
+
+    class Class {
+        public int ClassID { get; set; }
+        public string ClassName { get; set; }
+    }
+
+    // sử dụng phương thức Join()
+    List<Student> students = new List<Student> { 
+        new Student { Name = "John", ClassID = 3 }, 
+        new Student { Name = "Mary", ClassID = 3 },
+        new Student { Name = "Bob", ClassID = 2 },
+        new Student { Name = "David", ClassID = 1 } // không có lớp nào id = 1
+     };
+
+    List<Class> classes = new List<Class> { 
+        new Class { ClassID = 2, ClassName = "C2" },
+        new Class { ClassID = 3, ClassName = "C3" }
+    };
+
+    var results = students.Join(classes, 
+                                s => s.ClassID, // khóa của student
+                                c => c.ClassID, // khóa của class
+                                (s, c) => new { s.Name, c.ClassName } // lấy ra tên sinh viên và tên lớp
+    );
+
+    foreach(var item in result)
+    {
+        Console.WriteLine(item.Sname + " : " + item.Cname);
+    }
+
+    /*
+        Output:
+            John : C3
+            Mary : C3
+            Bob : C2
+    */
+
+```
+
+Như vậy, phép kết với phương thức `Join()` chỉ kết các phần tử của 2 tập hợp khi `outerKeySelector` bằng với `innerKeySelector` (tương tự phép `INNER JOIN` của SQL).
+
+Tìm hiểu thêm về tham số `IEqualityComparer<T>` dùng cho phương thức `Join()` trong trường hợp cần chỉ ra cách so sánh giữa 2 khóa.
+
+### Phương thức Single() và SingleOrDefault()
+
+Phương thức `Single()` được dùng để lấy một phần tử trong tập phần tử hiện tại.
+
+**Ví dụ:**
+
+```cs
+    var result = classes.Where(c => c.ClassID == 1).Single();
+```
+
+> [!Warning]
+> 
+> Nếu như tập hợp không trả về chính xác 1 phần tử (không hơn và không kém), phương thức `Single()` sẽ ném ra ngoại lệ `InvalidOperationException`. Do đó, phương thức này thường theo sau mệnh đề `Where()`.
+
+Phương thức `Single()` có thể không cần đi kèm với `Where()` nếu chỉ định một điều kiện tìm với cú pháp:
+
+```cs
+    TSource Single<TSource>(Func<TSource, bool> predicate)
+```
+
+**Ví dụ:**
+
+```cs
+    var result = classes.Where(c => c.ClassID == 1).Single();
+    // có thể thay thế như bên dưới
+    var result = classes.Single(c => c.ClassID == 1);
+```
+
+Phương thức `Single()` sẽ ném ngoại lệ khi tập dữ liệu trả về nhiều hơn một phần tử hoặc không trả phần tử nào. Tuy nhiên, nếu vẫn chấp nhận việc tập hợp **không trả về phần tử nào**, ta có thể sử dụng phương thức `SingleOrDefault()` để thay thế.
+
+Cú pháp:
+
+```cs
+    SingleOrDefault<TSource>()
+    SingleOrDefault<TSource>(TSource defaultValue)
+    SingleOrDefault<TSource>(Func<TSource, bool> predicate)
+    SingleOrDefault<TSource>(Func<TSource, bool> predicate, TSource defaultValue)
+```
+
+Tham số `defaultValue` sẽ được dùng trả về nếu như tập hợp không trả vềphần tử nào. Nếu không chỉ định tham số này, giá trị `default(TSource)` sẽ được sử dụng.
+
+Về cơ bản, phương thức `SingleOrDefault()` có cách dùng tương tự như phương thức `Single()`.
+
+**Ví dụ:**
+
+```cs
+    int[] num = { -5, 6, 13, 54, 16, -9 };
+
+    var r1 = num.Where(n => n % 7 == 0).SingleOrDefault(); // r1 = default(int) = 0
+
+    var r2 = num.SingleOrDefault(n => n % 5 == 0); // r2 = -5
+
+    var r2 = num.Where(n => n < -10).SingleOrDefault(-1); // r2 = -1
+```
+
+### Các phương thức khác
+
+Xem chi tiết về các phương thức mở rộng của LINQ tại [**LINQ method syntax**](https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable?view=net-7.0).
 
