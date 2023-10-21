@@ -572,6 +572,86 @@ Về cơ bản, phương thức `SingleOrDefault()` có cách dùng tương tự
     var r2 = num.Where(n => n < -10).SingleOrDefault(-1); // r2 = -1
 ```
 
+### Phương thức First() và FirstOrDefault()
+
+Phương thức `First()` và `FirstOrDefault()` được dùng để lấy phần tử đầu tiên từ tập dữ liệu trả về hoặc theo điều kiện lọc cụ thể.
+
+Cú pháp:
+
+* Phương thức `First()`:
+
+```cs
+    First<TSource>()
+    First<TSource>(Func<TSource, bool> predicate)
+```
+
+* Phương thức `FirstOrDefault()`:
+
+```cs
+    FirstOrDefault<TSource>()
+    FirstOrDefault<TSource>(TSource defaultValue)
+    FirstOrDefault<TSource>(Func<TSource, bool> predicate)
+    FirstOrDefault<TSource>(Func<TSource, bool> predicate, TSource defaultValue)
+```
+
+Phương thức `First()` sẽ ném ra ngoại lệ nếu như tập dữ liệu không chứa phần tử nào. Ta có thể sử dụng `FirstOrDefault()` để dùng giá trị mặc định khi tập dữ liệu rỗng.
+
+**Ví dụ:**
+
+```cs
+    int[] nums = { 0, 6, 4, -1, 3, 7, -7 };
+
+	var r1 = nums.Where(n => n < 0).First(); // r1 = -1
+
+	var r2 = nums.First(n => n % 2 == 0); // r2 = 6
+
+	var r3 = nums.FirstOrDefault(n => n % 5 == 0); // r3 = 0
+```
+
+### Phương thức Distinct() và DistinctBy()
+
+Nếu muốn lấy ra tập dữ liệu có các phần tử không trùng nhau (có thể theo tiêu chí lọc nào đó), ta có thể sử dụng phương thức `Distinct()` hoặc `DistinctBy()`.
+
+**Ví dụ:**
+
+```cs
+    int[] nums = { 1, 4, 5, 3, 7, 3, 2, 1 };
+
+	var distinctNums = nums.Distinct();
+
+	foreach(var value in distinctNums)
+    {
+		Console.Write(value + " ");
+	}
+	// output: 1 4 5 3 7 2
+```
+
+Nếu như không nhận tham số gì, phương thức `Distinct()` sẽ dùng trình so sánh mặc định của kiểu tập hợp. Nếu muốn sử dụng cho các kiểu dữ liệu tự định nghĩa, hãy triển khai `IEquatable<T>`.
+
+Một phiên bản nạp chồng khác của phương thức `Distinct()` nhận tham số kiểu `IEqualityComparer<TSource>` dùng chỉ ra cách so sánh giữa 2 phần tử nếu cần.
+Đối với các kiểu dữ liệu tự định nghĩa, phương thức `DistinctBy()` được sử dụng nhiều hơn với cú pháp:
+
+```cs
+    DistinctBy<TSource,TKey>(Func<TSource,TKey> keySelector)
+```
+
+Với cú pháp trên, ta có thể dùng biểu thức Lambda để chỉ ra khóa nào sẽ được dùng so sánh giữa các phần tử trong tập dữ liệu.
+
+**Ví dụ:**
+
+```cs
+    List<Student> students = new List<Student> { 
+        new Student { Name = "John", ClassID = 3 }, 
+       	new Student { Name = "Mary", ClassID = 3 },
+        new Student { Name = "Bob", ClassID = 2 },
+        new Student { Name = "David", ClassID = 1 }
+    };
+	var result = students.DistinctBy(s => s.ClassID).Select(s => s.ClassID);
+	// result = { 3, 2, 1 }
+```
+
+Trong trường hợp khóa được chọn không có trình so sánh mặc định, ta có thể chỉ định tham số kiểu `IEqualityComparer<TSource>`.
+
 ### Các phương thức khác
 
 Xem chi tiết về các phương thức mở rộng của LINQ tại [**LINQ method syntax**](https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable?view=net-7.0).
