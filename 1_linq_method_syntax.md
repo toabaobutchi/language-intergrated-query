@@ -576,3 +576,35 @@ Về cơ bản, phương thức `SingleOrDefault()` có cách dùng tương tự
 
 Xem chi tiết về các phương thức mở rộng của LINQ tại [**LINQ method syntax**](https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable?view=net-7.0).
 
+## Triển khai IComparer<T>
+
+IComparer<T> là interface dùng để chỉ định cách so sánh giữa 2 đối tượng, giá trị.
+
+Các kiểu dữ liệu dựng sẵn đã có sẵn trình so sánh, nhưng với các kiểu dữ liệu phức tạp, ta phải tự định nghĩa các so sánh.
+
+Để triển khai `IComparer<T>`, hãy định nghĩa phương thức `Compare(T x, T y)` trả về kiểu `int` cho biết giá trị tương đối giữa `x` và `y` như sau:
+
+* Nhỏ hơn 0 nếu `x` < `y`
+
+* Bằng 0 nếu `x` = `y`
+
+* Nhỏ hơn 0 nếu `x` > `y`
+
+> [!Note]
+>
+> Việc so sánh với `null` không gây ra lỗi hoặc ngoại lệ. Giá trị `null` luôn **nhỏ hơn** các giá trị non-null.
+
+**Ví dụ:**
+
+```cs
+    public class StudentNameComparer : Comparer<Student>
+    {
+        public int Compare(Student x, Student y)
+        {
+            string nameX = x.Name.Substring(x.Name.LastIndexOf(" ")); // lấy ra phần tên của x
+            string nameY = x.Name.Substring(x.Name.LastIndexOf(" ")); // lấy ra phần tên của y
+
+            return fnameX.Compare(fnameY);
+        }
+    }
+```
