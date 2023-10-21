@@ -486,7 +486,7 @@ Bên cạnh đó, **Left outer join** cũng là một dạng của Group join. L
 
 Khi sử dụng từ khóa `into`, một tập hợp sẽ được trả về (dù không có phần tử nào) và ngăn việc tự động bỏ qua đối tượng ở vế trái của biểu thức truy vấn.
 
-![Picture1](https://github.com/toabaobutchi/language-intergrated-query/assets/147165208/97b47743-bddb-47d7-a20b-8a532c33bc57)
+![Picture2](https://github.com/toabaobutchi/language-intergrated-query/assets/147165208/01899b7c-fd5f-42fe-ae5d-5097f5f6a0ef)
 
 **Ví dụ:**
 
