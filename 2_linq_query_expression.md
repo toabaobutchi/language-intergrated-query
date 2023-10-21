@@ -126,7 +126,7 @@ Tóm lại, các mệnh đề `from` lồng nhau sẽ có hành vi tương tự 
 
 Mệnh đề `select` dùng để xác định (chọn) các thành phần, giá trị, thuộc tính nào sẽ trả về qua biểu thức truy vấn. Trong tập hợp đó, mỗi phần tử sẽ có các giá trị mà `select` chỉ định.
 
-Một biểu thức truy vấn phải kết thúc bằng mệnh đề `select` hoặc [**`group`**](#m%E1%BB%87nh-%C4%91%E1%BB%81-group).
+Một biểu thức truy vấn phải kết thúc bằng mệnh đề `select` hoặc [**`group`**](#mệnh-đề-group).
 
 Cú pháp:
 
