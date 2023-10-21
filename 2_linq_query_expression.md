@@ -426,7 +426,7 @@ Trong đó:
 Khi sử dụng cùng từ khóa `into`, mệnh đề `join` trở thành **Group join** hoặc **Left outer join**. Nhưng trước tiên, ta sẽ tìm hiểu qua về từ khóa `into` khi sử dụng trong mệnh đề `join`.
 
 ---
-# Từ khóa into với mệnh đề join
+#### Từ khóa into với mệnh đề join
 ---
 
 Biến tạm khai báo bởi từ khóa `into` sẽ lưu một đối tượng `IEnumerable<T>` khi dùng với mệnh đề `join`. Với `T` trùng với kiểu tập dữ liệu tạo phép kết. Biến tạm này sẽ lưu danh sách các đối tượng phù hợp với khóa mà tập dữ liệu gốc cung cấp.
@@ -464,6 +464,7 @@ Biến tạm khai báo bởi từ khóa `into` sẽ lưu một đối tượng `
 
 ---
 #### Group join và Left outer join
+---
 
 Những mệnh đề `join` sử dụng từ khóa `into` được gọi là **Group join**.
 
@@ -471,7 +472,7 @@ Bên cạnh đó, **Left outer join** cũng là một dạng của Group join. L
 
 Đối với **Inner join** (mệnh đề `join` không sử dụng từ khóa `into`), kết quả trả về sẽ chỉ là những "bộ" dữ liệu tạo được phép kết (khóa A khớp với khóa B). Các phần tử nào không tạo được phép kết sẽ không trả về.
 
-![Inner join](https://funix.edu.vn/wp-content/uploads/2022/04/innerjoin.png)
+<img src="https://funix.edu.vn/wp-content/uploads/2022/04/innerjoin.png" width="500px"/>
 
 **Ví dụ:**
 
@@ -480,9 +481,110 @@ Bên cạnh đó, **Left outer join** cũng là một dạng của Group join. L
                   join prod in products on category.ID equals prod.CategoryID
                   select new { ProductName = prod.Name, Category = category.Name };
 
-	// Nếu 1 product có 'CategoryID' không trùng với khóa nào của category thì sẽ không được trả về
+    // Nếu 1 product có 'CategoryID' không trùng với khóa nào của category thì sẽ không được trả về
 ```
 
 Khi sử dụng từ khóa `into`, một tập hợp sẽ được trả về (dù không có phần tử nào) và ngăn việc tự động bỏ qua đối tượng ở vế trái của biểu thức truy vấn.
 
+![Picture1](https://github.com/toabaobutchi/language-intergrated-query/assets/147165208/97b47743-bddb-47d7-a20b-8a532c33bc57)
 
+**Ví dụ:**
+
+```cs
+	// left join cho category -> lấy toàn bộ category
+	var result = from category in categories
+				 join prod in products on category.ID equals prod.CategoryID into prodGroup
+				 select new { Category = category.Name, Products = prodGroup };
+
+	foreach(var item in results)
+	{
+		Console.WriteLine(item.Category);
+		foreach(var pro in item.Products)
+		{
+			Console.WriteLine("\t" + pro.Name);
+		}
+	}
+	// Một số category sẽ không hiển thị sản phẩm nào
+```
+
+Như vậy, việc sử dụng từ khóa into giúp ta triển khai được ít nhiều `LEFT JOIN` như SQL.
+
+> [!Warning]
+> Nếu như cần xử lý thêm với phép kết bằng mệnh đề `from`, việc sử dụng từ khóa `into` sẽ không đủ để triển khai Left join.
+
+**Ví dụ:**
+
+```cs
+	var result = from category in categories
+				 join prod in products on category.ID equals prod.CategoryID into prodGroup
+				 from p in prodGroup // đôi khi 'prodGroup' không có phần tử nào
+				 select new { Category = category.Name, Product = p.Name};
+```
+Nếu như `propGroup` không có phần tử (trường hợp không so khớp được khóa nào), mệnh đề `from` sẽ bỏ qua các dữ liệu này, và `category` cũng không còn trả về đầy đủ nữa.
+Để tránh việc mệnh đề `from` bỏ qua, ta sử dụng phương thức `DefaultIfEmpty()` nhằm chỉ ra phần tử mặc định của vế phải nếu như vế trái không có phần tử nào kết được.
+
+**Ví dụ:**
+
+```cs
+	var result = from category in categories
+				 join prod in products on category.ID equals prod.CategoryID into prodGroup
+				 from p in prodGroup.DefaultIfEmpty()
+				 select new { Category = category.Name, Product = p};
+
+	foreach(var item in result)
+	{
+		Console.WriteLine(item.ToString());
+	}
+```
+
+Vì trả về một đối tượng mặc định, nên đôi khi ta cần phải kiểm soát và quản lý giá trị `null` nếu như phần tử có kiểu dữ liệu tham chiếu.
+
+Bên cạnh đó, ta cũng có thể truyền vào và chỉ định một đối tượng mặc định cụ thể, ví dụ như sau:
+
+```cs
+	... from p in prodGroup.DefaultIfEmpty(new Product { Name = "", Price = 0 }) ...
+```
+
+---
+#### Composite keys – Mệnh đề join với nhiều khóa
+---
+
+Để thực hiện phép kết với nhiều khóa bên A và số lượng khóa tương tự bên B, ta sử dụng cú pháp kiểu ẩn danh. Trường hợp này thường xảy ra khi một đối tượng có nhiều khóa cần kết (có thể hiểu là nhiều khóa chính tương ứng với nhiều khóa ngoại trong SQL).
+
+```cs
+	class A
+	{
+		public int KeyA { get; set; }
+		public string KeyB { get; set; }
+	}
+
+	class B
+	{
+		public int KeyA { get; set; }
+		public string KeyB { get; set; }
+	}
+```
+
+Trong trường hợp cần tạo phép kết trên nhiều khóa như trên, ta có thể thực hiện như sau:
+
+```cs
+	var results = from a in A_collection
+				  join b in B_collection
+				  on new { a.KeyA, a.KeyB } equals new { b.KeyA, b.KeyB }
+				  ...;
+```
+
+Tên của các thuộc tính trong kiểu ẩn danh phải giống nhau để tiến hành so khớp, ở ví dụ trên là thuộc tính `KeyA` của kiểu `A` sẽ so khớp với thuộc tính `KeyA` của kiểu `B`. Nếu không, hãy đặt lại định danh cho chúng.
+
+**Ví dụ:**
+
+```cs
+	var result = from a in A
+				 join b in B
+				 on new { Key1 = a.KeyA, Key2 = a.KeyB }
+				 equals new { Key1 = b.KeyC, Key2 = b.KeyD } ...
+```
+
+### Mệnh đề let
+
+Xem thêm tại: [**Mệnh đề let**](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/let-clause).
