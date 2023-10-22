@@ -95,7 +95,7 @@ Trong trường hợp với mỗi đối tượng có thêm một tập hợp kh
                   select ...;
 ```
 
-Ta có thể thêm nhiều mệnh đề from để làm việc trên nhiều tập dữ liệu.
+Ta có thể thêm nhiều mệnh đề `from` để làm việc trên nhiều tập dữ liệu.
 
 **Ví dụ:**
 
