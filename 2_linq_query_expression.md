@@ -106,16 +106,16 @@ Ta có thể thêm nhiều mệnh đề `from` để làm việc trên nhiều t
                   from ib in b
                   select new { ia, ib };
 
-	foreach(var x in results)
+    foreach(var x in results)
     {
-		Console.WriteLine(x.ia + "\t" + x.ib);
-	}
-	/*
+        Console.WriteLine(x.ia + "\t" + x.ib);
+    }
+    /*
     Output:
-	    1 1
-	    1 2
-	    2 1
-	    2 2
+        1 1
+        1 2
+        2 1
+        2 2
     */
 ```
 
