@@ -110,7 +110,6 @@ Ta có thể thêm nhiều mệnh đề `from` để làm việc trên nhiều t
     {
 		Console.WriteLine(x.ia + "\t" + x.ib);
 	}
-
 	/*
     Output:
 	    1 1
