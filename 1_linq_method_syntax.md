@@ -89,7 +89,7 @@ LINQ có 3 ứng dụng chính:
 
 Các phương thức mở rộng của LINQ có tên gần giống với các lệnh trong SQL như `Select()`, `Where()`, `OrderBy()`, … thường được dùng để truy vấn dữ liệu trên tập hợp và trả về kết quả truy vấn được.
 
-Các phương thức này thường được cung cấp cho các kiểu dẫn xuất của `IEnumerable` và `IEnumerable<T>` như mảng, `List<T>`, ... và được định nghĩa trong lớp tĩnh `Enumerable`.
+Các phương thức này thường được cung cấp cho các kiểu dẫn xuất của `IEnumerable` và `IEnumerable<T>` như mảng, `List<T>`, ... và được định nghĩa trong lớp tĩnh `Enumerable`. Bên cạnh đó, kiểu `IQueryable<T>` cũng được hỗ trợ các cú pháp LINQ.
 
 Các tham số trong các phương thức mở rộng của LINQ đa phần sử dụng các Delegate quen thuộc như `Func<>`, `Action<>`, … nhằm cho người dùng tự quyết cách thao tác với dữ liệu.
 
