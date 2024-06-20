@@ -303,7 +303,7 @@ Ta cũng có thể dùng giá trị của một thuộc tính trong tập dữ l
         new Person { Name = "Thinh", Address = "HaNoi" }
     };
 
-    var personByAddress = from person in persons
+    var personByAddress = from person in people
                           group person by person.Address;
 
     foreach(var personGroup in personByAddress)
