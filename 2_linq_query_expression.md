@@ -194,7 +194,7 @@ Trong đó, `condition` là biểu thức điều kiện dùng để lọc. Bi�
 
     foreach(var value in evenNums)
     {
-        Console.Write(value + " "); // 4 2 6 14
+        Console.Write(value + " "); // 4 2 6
     }
 ```
 
